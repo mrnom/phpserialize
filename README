@@ -1,3 +1,9 @@
-a port of the serialize and unserialize functions of php to python. This module
+Fork of https://github.com/aioTV/phpserialize based on https://github.com/mitsuhiko/phpserialize
+
+A port of the serialize and unserialize functions of php to python. This module
 implements the python serialization interface (eg: provides dumps, loads and
 similar functions).
+
+Support Native Nasted Objets by hdbreaker # Last Commit Apr 14, 2016 
+Support Python3, PHP Sessions, Unicode chars by aioTV # Last Commit Mar 30, 2016 
+Support Serialize and Unserialize by mitsuhiko # Last Commit 22 Jan 2012
