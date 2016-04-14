@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 r"""
     phpserialize 
     nasted object and python object direct serialization by hdbreaker
@@ -400,17 +401,15 @@ def dumps(data, charset='utf-8', errors=default_errors, object_hook=None):
                     str(len(obj)).encode('latin1'),
                     b':{',
                     b''.join(out),
-                    b'}'
+                    b'};'
                 ])
             if isinstance(obj, phpobject):
-                string = ""+b'O' + _serialize(obj.__name__, True)[1:-1] + \
-                       _serialize(obj.__php_vars__, False)[1:].replace('}}','};}')
-                return string
+                return b'O' + _serialize(obj.__name__, True)[1:-1] + \
+                       _serialize(obj.__php_vars__, False)[1:]
             else:
                 if isinstance(obj, object):
-                    string = b'O' + _serialize(obj.__class__.__name__, True)[1:-1] + \
-                           _serialize(obj.__dict__, False)[1:].replace('}}','};}')
-                    return string
+                    return b'O' + _serialize(obj.__class__.__name__, True)[1:-1] + \
+                           _serialize(obj.__dict__, False)[1:]
             if object_hook is not None:
                 return _serialize(object_hook(obj), False)
             raise TypeError('can\'t serialize %r' % type(obj))
@@ -478,43 +477,45 @@ def load(fp, charset='utf-8', errors=default_errors, decode_strings=False,
 
     def _unserialize():
         type_ = fp.read(1).lower()
-        if type_ == b'n':
-            _expect(b';')
-            return None
-        if type_ in b'idb':
-            _expect(b':')
-            data = _read_until(b';')
-            if type_ == b'i':
-                return int(data)
-            if type_ == b'd':
-                return float(data)
-            return int(data) != 0
-        if type_ == b's':
-            _expect(b':')
-            length = int(_read_until(b':'))
-            _expect(b'"')
-            data = fp.read(length)
-            _expect(b'"')
-            if decode_strings:
-                data = data.decode(charset, errors)
-            _expect(b';')
-            return data
-        if type_ == b'a':
-            _expect(b':')
-            return array_hook(_load_array())
-        if type_ == b'o':
-            if object_hook is None:
-                raise ValueError('object in serialization dump but '
-                                 'object_hook not given.')
-            _expect(b':')
-            name_length = int(_read_until(b':'))
-            _expect(b'"')
-            name = fp.read(name_length)
-            _expect(b'":')
-            if decode_strings:
-                name = name.decode(charset, errors)
-            return object_hook(name, dict(_load_array()))
-        raise ValueError('unexpected opcode')
+        if type_ != ';':
+
+            if type_ == b'n':
+                _expect(b';')
+                return None
+            if type_ in b'idb':
+                _expect(b':')
+                data = _read_until(b';')
+                if type_ == b'i':
+                    return int(data)
+                if type_ == b'd':
+                    return float(data)
+                return int(data) != 0
+            if type_ == b's':
+                _expect(b':')
+                length = int(_read_until(b':'))
+                _expect(b'"')
+                data = fp.read(length)
+                _expect(b'"')
+                if decode_strings:
+                    data = data.decode(charset, errors)
+                _expect(b';')
+                return data
+            if type_ == b'a':
+                _expect(b':')
+                return array_hook(_load_array())
+            if type_ == b'o':
+                if object_hook is None:
+                    raise ValueError('object in serialization dump but '
+                                     'object_hook not given.')
+                _expect(b':')
+                name_length = int(_read_until(b':'))
+                _expect(b'"')
+                name = fp.read(name_length)
+                _expect(b'":')
+                if decode_strings:
+                    name = name.decode(charset, errors)
+                return object_hook(name, dict(_load_array()))
+            raise ValueError('unexpected opcode')
 
     return _unserialize()
 
