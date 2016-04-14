@@ -19,10 +19,10 @@ def get_docs():
 
 setup(
     name='phpserialize',
-    author='Armin Ronacher',
+    author='Alejandro Parodi',
     author_email='armin.ronacher@active-4.com',
-    version='1.3',
-    url='http://github.com/mitsuhiko/phpserialize',
+    version='1.6',
+    url='http://github.com/hdbreaker/phpserialize',
     py_modules=['phpserialize'],
     description='a port of the serialize and unserialize '
                 'functions of php to python.',
