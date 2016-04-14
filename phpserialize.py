@@ -404,6 +404,10 @@ def dumps(data, charset='utf-8', errors=default_errors, object_hook=None):
             if isinstance(obj, phpobject):
                 return b'O' + _serialize(obj.__name__, True)[1:-1] + \
                        _serialize(obj.__php_vars__, False)[1:]
+            else:
+                if isinstance(obj, object):
+                    return b'O' + _serialize(obj.__class__.__name__, True)[1:-1] + \
+                           _serialize(obj.__dict__, False)[1:]+';'           
             if object_hook is not None:
                 return _serialize(object_hook(obj), False)
             raise TypeError('can\'t serialize %r' % type(obj))
@@ -440,7 +444,7 @@ def load(fp, charset='utf-8', errors=default_errors, decode_strings=False,
 
     def _expect(e):
         v = fp.read(len(e))
-        if v != e:
+        if v != e and v == '}':
             raise ValueError('failed expectation, expected %r got %r' % (e, v))
 
     def _read_until(delim):
