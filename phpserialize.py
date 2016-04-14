@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
-    phpserialize
+    phpserialize 
+    nasted object and python object direct serialization by hdbreaker
     ~~~~~~~~~~~~
 
     a port of the ``serialize`` and ``unserialize`` functions of
@@ -402,12 +403,14 @@ def dumps(data, charset='utf-8', errors=default_errors, object_hook=None):
                     b'}'
                 ])
             if isinstance(obj, phpobject):
-                return b'O' + _serialize(obj.__name__, True)[1:-1] + \
-                       _serialize(obj.__php_vars__, False)[1:]
+                string = ""+b'O' + _serialize(obj.__name__, True)[1:-1] + \
+                       _serialize(obj.__php_vars__, False)[1:].replace('}}','};}')
+                return string
             else:
                 if isinstance(obj, object):
-                    return b'O' + _serialize(obj.__class__.__name__, True)[1:-1] + \
-                           _serialize(obj.__dict__, False)[1:]+';'           
+                    string = b'O' + _serialize(obj.__class__.__name__, True)[1:-1] + \
+                           _serialize(obj.__dict__, False)[1:].replace('}}','};}')
+                    return string
             if object_hook is not None:
                 return _serialize(object_hook(obj), False)
             raise TypeError('can\'t serialize %r' % type(obj))
@@ -561,3 +564,4 @@ def dict_to_tuple(d):
 
 serialize = dumps
 unserialize = loads
+
