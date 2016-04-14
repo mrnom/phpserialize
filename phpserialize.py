@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
 r"""
     phpserialize 
     nasted object and python object direct serialization by hdbreaker
@@ -238,6 +237,8 @@ r"""
     Changelog
     =========
 
+    1.4
+        -   added support for PHP sessions
     1.3
         -   added support for Python 3
 
@@ -418,7 +419,7 @@ def dumps(data, charset='utf-8', errors=default_errors, object_hook=None):
 
 
 def load(fp, charset='utf-8', errors=default_errors, decode_strings=False,
-         object_hook=None, array_hook=None):
+         object_hook=None, array_hook=None, return_unicode=False):
     """Read a string from the open file object `fp` and interpret it as a
     data stream of PHP-serialized objects, reconstructing and returning
     the original object hierarchy.
@@ -478,7 +479,6 @@ def load(fp, charset='utf-8', errors=default_errors, decode_strings=False,
     def _unserialize():
         type_ = fp.read(1).lower()
         if type_ != ';':
-
             if type_ == b'n':
                 _expect(b';')
                 return None
@@ -498,6 +498,8 @@ def load(fp, charset='utf-8', errors=default_errors, decode_strings=False,
                 _expect(b'"')
                 if decode_strings:
                     data = data.decode(charset, errors)
+                if return_unicode:
+                    data = unicode(data, charset)
                 _expect(b';')
                 return data
             if type_ == b'a':
@@ -515,19 +517,46 @@ def load(fp, charset='utf-8', errors=default_errors, decode_strings=False,
                 if decode_strings:
                     name = name.decode(charset, errors)
                 return object_hook(name, dict(_load_array()))
-            raise ValueError('unexpected opcode')
+            if type_ == b'r':
+                # recursion
+                _expect(b':')
+                data = _read_until(b';')
+                return None
+            raise ValueError('unexpected opcode - %s' % repr(type_))
 
-    return _unserialize()
+    fp_position = fp.tell()
+    chunk = _read_until(b':');
+    fp.seek(fp_position) # Reset pointer
+    if b'|' in chunk:
+        # We may be dealing with a serialized session, in which case keys
+        # followed by a pipe are preceding the serialized data.
+        unserialized_data = {}
+        while 1:
+            try:
+                key = _read_until(b'|');
+            except ValueError:
+                break # end of stream
+            if return_unicode:
+                key = unicode(key, charset)
+            unserialized_data[key] = _unserialize()
+    else:
+        unserialized_data = _unserialize()
+
+    return unserialized_data
 
 
 def loads(data, charset='utf-8', errors=default_errors, decode_strings=False,
-          object_hook=None, array_hook=None):
+          object_hook=None, array_hook=None, return_unicode=False):
     """Read a PHP-serialized object hierarchy from a string.  Characters in the
     string past the object's representation are ignored.  On Python 3 the
     string must be a bytestring.
     """
+    # Convert unicode strings to byte strings.
+    if type(data) == unicode:
+        data = data.encode(charset)
+        return_unicode = True
     return load(BytesIO(data), charset, errors, decode_strings,
-                object_hook, array_hook)
+                object_hook, array_hook, return_unicode)
 
 
 def dump(data, fp, charset='utf-8', errors=default_errors, object_hook=None):
@@ -565,4 +594,3 @@ def dict_to_tuple(d):
 
 serialize = dumps
 unserialize = loads
-
