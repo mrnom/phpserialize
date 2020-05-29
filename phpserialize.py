@@ -402,7 +402,7 @@ def dumps(data, charset='utf-8', errors=default_errors, object_hook=None):
                     str(len(obj)).encode('latin1'),
                     b':{',
                     b''.join(out),
-                    b'};'
+                    b'}'
                 ])
             if isinstance(obj, phpobject):
                 return b'O' + _serialize(obj.__name__, True)[1:-1] + \
