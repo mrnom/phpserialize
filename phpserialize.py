@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
     phpserialize 
-    nasted object and python object direct serialization by hdbreaker
+    nested object and python object direct serialization by hdbreaker
     ~~~~~~~~~~~~
 
     a port of the ``serialize`` and ``unserialize`` functions of
@@ -59,7 +59,7 @@ r"""
 
     It also provides functions to read from file-like objects:
 
-    >>> from StringIO import StringIO
+    >>> from io import StringIO
     >>> stream = StringIO('a:2:{i:0;i:1;i:1;i:2;}')
     >>> dict_to_list(load(stream))
     [1, 2]

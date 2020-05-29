@@ -1,6 +1,7 @@
 import os
 from setuptools import setup
 
+
 def get_docs():
     result = []
     in_docs = False
@@ -17,12 +18,13 @@ def get_docs():
         f.close()
     return '\n'.join(result)
 
+
 setup(
     name='phpserialize',
     author='Armin Ronacher',
     author_email='armin.ronacher@active-4.com',
     version='1.6',
-    url='http://github.com/hdbreaker/phpserialize',
+    url='http://github.com/mrnom/phpserialize',
     py_modules=['phpserialize'],
     description='a port of the serialize and unserialize '
                 'functions of php to python.',
