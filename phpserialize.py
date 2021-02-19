@@ -536,6 +536,8 @@ def load(fp, charset='utf-8', errors=default_errors, decode_strings=False,
                 key = _read_until(b'|');
             except ValueError:
                 break # end of stream
+            if decode_strings:
+                key = key.decode(charset, errors)
             if return_unicode:
                 key = unicode(key, charset)
             unserialized_data[key] = _unserialize()
